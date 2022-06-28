@@ -1,0 +1,41 @@
+{
+    "type": "object",
+    "properties": {
+        "sftpUrl": {
+            "type": "string",
+            "minLength": 1
+        },
+        "sftpUserName": {
+            "type": "string",
+            "minLength": 1
+        },
+        "sftpPassword": {
+            "type": "string",
+            "minLength": 1
+        },
+        "sftpDirectory": {
+            "type": "string",
+            "pattern": "^/.*/$"
+        },
+        "sftpDirectoryArchive": {
+            "type": "string",
+            "pattern": "^/.*/$"
+        },
+        "ovUrl": {
+            "type": "string",
+            "pattern": "^https://.*|^http://.*"
+        },
+        "ovAccessKey": {
+            "type": "string",
+            "minLength": 1
+        },
+        "ovSecretKey": {
+            "type": "string",
+            "minLength": 1
+        },
+        "filePrefixName": {
+            "type": "string",
+            "minLength": 1
+        }
+    }
+}
