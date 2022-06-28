@@ -39,7 +39,7 @@ class ModuleService:
         if is_file_exists:
             self._module_log.add(LogLevel.INFO, f'File "{file_name}" has been downloaded')
 
-            fuze_id = self._module_helper.get_fuze_id(sftp, file_name)
+            fuze_id = self._module_helper.get_fuze_id(file_name)
             if fuze_id is None:
                 self._module_log.add(LogLevel.WARNING, f'Fuze ID not found in file name "{file_name}"')
 
