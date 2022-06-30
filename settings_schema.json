@@ -33,7 +33,7 @@
             "type": "string",
             "minLength": 1
         },
-        "sftpFileNameRegexpPattern": {
+        "filePrefixName": {
             "type": "string",
             "minLength": 1
         }

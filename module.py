@@ -17,11 +17,11 @@ class Module:
 
         sftp = self._sftp_data.connect()
         file_list = self._sftp_data.get_file_list(sftp)
-        filter_file_list = self._module_helper.filter_files(file_list)
-        self._module_log.add(LogLevel.INFO, f'{len(filter_file_list)} files found')
+        sort_file_list = self._module_helper.sort_files(file_list)
+        self._module_log.add(LogLevel.INFO, f'{len(sort_file_list)} files found')
 
-        for file_name in filter_file_list:
-            self._module_service.process_file_data(sftp, file_name)
+        for file_name in sort_file_list:
+            self._module_service.file_name_data(sftp, file_name)
 
         self._module_log.add(LogLevel.INFO, 'Module has been completed')
 
@@ -34,9 +34,8 @@ class ModuleService:
         self._trackor_data = trackor_data
         self._sftp_data = sftp_data
 
-    def process_file_data(self, sftp, file_name):
-        self._sftp_data.download_file(sftp, file_name)
-        is_file_exists = self._module_helper.check_file_exist(file_name)
+    def file_name_data(self, sftp, file_name):
+        is_file_exists = self.file_download(sftp, file_name)
         if is_file_exists:
             self._module_log.add(LogLevel.INFO, f'File "{file_name}" has been downloaded')
 
@@ -50,10 +49,19 @@ class ModuleService:
                     self._sftp_data.move_to_archive(sftp, file_name)
                     self._module_log.add(LogLevel.INFO, f'File "{file_name}" has been uploaded and moved to the archive')
 
-            self._module_helper.delete_file(file_name)
+            self.file_delete(file_name)
 
         else:
             self._module_log.add(LogLevel.WARNING, f'File "{file_name}" has not been downloaded')
+
+    def file_download(self, sftp, file_name):
+        self._sftp_data.get_file(sftp, file_name)
+        is_file_exists = os.path.exists(file_name)
+
+        return is_file_exists
+
+    def file_delete(self, file_name):
+        os.remove(file_name)
 
     def upload_files_to_trackors(self, fuze_id, file_name):
         is_file_uploaded = False
@@ -70,11 +78,11 @@ class ModuleService:
 
 class ModuleHelper:
 
-    def __init__(self, file_name_regexp_pattern):
-        self._file_name_regexp_pattern = file_name_regexp_pattern
+    def __init__(self, file_prefix_name):
+        self._file_prefix_name = file_prefix_name
 
-    def filter_files(self, file_list):
-        compile_prefix = re.compile(self._file_name_regexp_pattern)
+    def sort_files(self, file_list):
+        compile_prefix = re.compile(self._file_prefix_name)
         filtered_files = list(filter(compile_prefix.search, file_list))
 
         return filtered_files
@@ -85,12 +93,6 @@ class ModuleHelper:
             fuze_id = fuze_id.group()[:-1]
         
         return fuze_id
-
-    def check_file_exist(self, file_name):
-        return os.path.exists(file_name)
-
-    def delete_file(self, file_name):
-        os.remove(file_name)
 
 
 class ModuleError(Exception):
@@ -150,11 +152,11 @@ class SFTPData:
 
     def get_file_list(self, sftp):
         with sftp.cd(self._directory):
-            file_list = sftp.listdir()
+            files = sftp.listdir()
 
-        return file_list
+        return files
 
-    def download_file(self, sftp, file_name):
+    def get_file(self, sftp, file_name):
         sftp.get(f'{self._directory}{file_name}', preserve_mtime=True)
 
     def move_to_archive(self, sftp, file_name):
