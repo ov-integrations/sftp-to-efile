@@ -53,6 +53,9 @@ class ModuleService:
                     self._module_log.add(LogLevel.INFO, f'File "{file_name}" has been uploaded and moved to the archive')
 
             self._module_helper.delete_file(file_name)
+            is_file_exists = self._module_helper.check_file_exist(file_name)
+            if is_file_exists is False:
+                self._module_log.add(LogLevel.INFO, f'File "{file_name}" has been deleted')
 
         else:
             self._module_log.add(LogLevel.WARNING, f'File "{file_name}" has not been downloaded')
