@@ -45,7 +45,9 @@ class ModuleService:
                 self._module_log.add(LogLevel.WARNING, f'Fuze ID not found in file name "{file_name}"')
 
             else:
-                is_file_uploaded = self.upload_files_to_trackors(fuze_id, file_name)
+                trackor_data = self._trackor_data.get_trackors(fuze_id)
+                filter_trackors = self._module_helper.filter_trackors(trackor_data, fuze_id)
+                is_file_uploaded = self.upload_files_to_trackors(filter_trackors, file_name)
                 if is_file_uploaded:
                     self._sftp_data.move_to_archive(sftp, file_name)
                     self._module_log.add(LogLevel.INFO, f'File "{file_name}" has been uploaded and moved to the archive')
@@ -55,11 +57,10 @@ class ModuleService:
         else:
             self._module_log.add(LogLevel.WARNING, f'File "{file_name}" has not been downloaded')
 
-    def upload_files_to_trackors(self, fuze_id, file_name):
+    def upload_files_to_trackors(self, filter_trackors, file_name):
         is_file_uploaded = False
-        trackor_data = self._trackor_data.get_trackors(fuze_id)
-        for trackor in trackor_data:
-            uploaded_file = self._trackor_data.upload_file(trackor[TrackorData.TRACKOR_ID], file_name)
+        for trackor in filter_trackors:
+            uploaded_file = self._trackor_data.upload_file(trackor, file_name)
             if uploaded_file is None:
                 is_file_uploaded = False
             else:
@@ -78,6 +79,14 @@ class ModuleHelper:
         filtered_files = list(filter(compile_prefix.search, file_list))
 
         return filtered_files
+
+    def filter_trackors(self, trackor_data, fuze_id):
+        filter_trackors = []
+        for trackor in trackor_data:
+            if trackor[TrackorData.FUZE_ID] == fuze_id:
+                filter_trackors.append(trackor[TrackorData.TRACKOR_ID])
+
+        return filter_trackors
 
     def get_fuze_id(self, file_name):
         fuze_id = re.search(r'\d+\.', file_name)
@@ -111,7 +120,8 @@ class TrackorData:
     def get_trackors(self, fuze_id):
         self._ov_trackor_type.read(
             filters={TrackorData.PROJECT_STATUS: TrackorData.ACTIVE_STATUS,
-                     TrackorData.FUZE_ID: fuze_id}
+                     TrackorData.FUZE_ID: fuze_id},
+            fields={TrackorData.FUZE_ID}
         )
 
         if len(self._ov_trackor_type.errors) != 0:
