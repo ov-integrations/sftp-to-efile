@@ -12,11 +12,10 @@ Example of settings.json
     "sftpPassword": "************",
     "sftpDirectory": "/home/zzz/Inbound/",
     "sftpDirectoryArchive": "/home/zzz/Inbound/Archive/",
+    "sftpFileNameRegexpPattern": "\\w+_\\w+_\\w+_\\d{8}_\\d+.zip",
 
     "ovUrl": "https://***.onevizion.com/",
     "ovAccessKey": "******",
-    "ovSecretKey": "************",
-
-    "sftpFileNameRegexpPattern": "\\w+_\\w+_\\w+_\\d{8}_\\d+.zip"
+    "ovSecretKey": "************"
 }
 ```

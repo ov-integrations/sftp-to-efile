@@ -26,12 +26,12 @@ sftp_username = settings_data['sftpUserName']
 sftp_password = settings_data['sftpPassword']
 sftp_directory = settings_data['sftpDirectory']
 sftp_directory_archive = settings_data['sftpDirectoryArchive']
+sftp_file_name_regexp_pattern = settings_data['sftpFileNameRegexpPattern']
 
 ov_url = re.sub('^http://|^https://', '', settings_data['ovUrl'][:-1])
 ov_access_key = settings_data['ovAccessKey']
 ov_secret_key = settings_data['ovSecretKey']
 
-ov_file_name_regexp_pattern = settings_data['sftpFileNameRegexpPattern']
 
 with open('ihub_parameters.json', 'rb') as PFile:
     module_data = json.loads(PFile.read().decode('utf-8'))
@@ -42,9 +42,9 @@ log_level = module_data['logLevel']
 module_log = IntegrationLog(process_id, ov_url, ov_access_key, ov_secret_key, None, True, log_level)
 sftp_data = SFTPData(sftp_url, sftp_username, sftp_password, sftp_directory, sftp_directory_archive)
 trackor_data = TrackorData(ov_url, ov_access_key, ov_secret_key)
-module_helper = ModuleHelper(ov_file_name_regexp_pattern)
+module_helper = ModuleHelper(sftp_file_name_regexp_pattern)
 module_service = ModuleService(module_log, module_helper, trackor_data, sftp_data)
-module = Module(module_log, sftp_data, module_service, module_helper)
+module = Module(module_log, sftp_data, trackor_data, module_service, module_helper)
 
 try:
     module.start()

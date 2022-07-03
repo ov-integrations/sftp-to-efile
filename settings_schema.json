@@ -21,6 +21,10 @@
             "type": "string",
             "pattern": "^/.*/$"
         },
+        "sftpFileNameRegexpPattern": {
+            "type": "string",
+            "minLength": 1
+        },
         "ovUrl": {
             "type": "string",
             "pattern": "^https://.*|^http://.*"
@@ -30,10 +34,6 @@
             "minLength": 1
         },
         "ovSecretKey": {
-            "type": "string",
-            "minLength": 1
-        },
-        "sftpFileNameRegexpPattern": {
             "type": "string",
             "minLength": 1
         }
