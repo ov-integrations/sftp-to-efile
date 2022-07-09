@@ -25,6 +25,10 @@
             "type": "string",
             "minLength": 1
         },
+        "sftpFuzeIdRegexpPattern": {
+            "type": "string",
+            "minLength": 1
+        },
         "ovUrl": {
             "type": "string",
             "pattern": "^https://.*|^http://.*"

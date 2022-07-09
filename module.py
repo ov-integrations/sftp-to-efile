@@ -6,25 +6,25 @@ from onevizion import LogLevel, Trackor
 
 class Module:
 
-    def __init__(self, ov_module_log, sftp_data, trackor_data, module_service, module_helper):
+    def __init__(self, ov_module_log, sftp_data, trackor_data, file_name_regexp_pattern, fuze_id_regexp_pattern):
         self._module_log = ov_module_log
         self._sftp_data = sftp_data
         self._trackor_data = trackor_data
-        self._module_service = module_service
-        self._module_helper = module_helper
+        self._file_name_regexp_pattern = file_name_regexp_pattern
+        self._module_service = _ModuleService(ov_module_log, sftp_data, trackor_data, file_name_regexp_pattern, fuze_id_regexp_pattern)
 
     def start(self):
         self._module_log.add(LogLevel.INFO, 'Starting Module')
 
         sftp = self._sftp_data.connect()
         file_list = self._sftp_data.get_file_list(sftp)
-        filter_file_list = self._module_helper.filter_files(file_list)
+        filter_file_list = self._module_service.filter_files(file_list)
         self._module_log.add(LogLevel.INFO, f'{len(filter_file_list)} files found')
 
         for file_name in filter_file_list:
-            fuze_id = self._module_helper.get_fuze_id(file_name)
+            fuze_id = self._module_service.get_fuze_id(file_name)
             trackor_data = self._trackor_data.get_trackors(fuze_id)
-            filter_trackors = self._module_helper.filter_trackors(trackor_data, fuze_id)
+            filter_trackors = self._module_service.filter_trackors(trackor_data, fuze_id)
             self._module_log.add(LogLevel.INFO, f'{len(filter_trackors)} Trackors found for file "{file_name}"')
             if len(filter_trackors) > 0:
                 self._module_service.process_file_data(sftp, file_name, filter_trackors)
@@ -32,17 +32,18 @@ class Module:
         self._module_log.add(LogLevel.INFO, 'Module has been completed')
 
 
-class ModuleService:
+class _ModuleService:
 
-    def __init__(self, ov_module_log, module_helper, trackor_data, sftp_data):
+    def __init__(self, ov_module_log, sftp_data, trackor_data, file_name_regexp_pattern, fuze_id_regexp_pattern):
         self._module_log = ov_module_log
-        self._module_helper = module_helper
-        self._trackor_data = trackor_data
         self._sftp_data = sftp_data
+        self._trackor_data = trackor_data
+        self._file_name_regexp_pattern = file_name_regexp_pattern
+        self._fuze_id_regexp_pattern = fuze_id_regexp_pattern
 
     def process_file_data(self, sftp, file_name, filter_trackors):
         self._sftp_data.download_file(sftp, file_name)
-        is_file_exists = self._module_helper.check_file_exist(file_name)
+        is_file_exists = os.path.exists(file_name)
         if is_file_exists:
             self._module_log.add(LogLevel.INFO, f'File "{file_name}" has been downloaded')
 
@@ -51,19 +52,13 @@ class ModuleService:
                 self._sftp_data.move_to_archive(sftp, file_name)
                 self._module_log.add(LogLevel.INFO, f'File "{file_name}" has been uploaded and moved to the archive')
 
-            self._module_helper.delete_file(file_name)
-            is_file_exists = self._module_helper.check_file_exist(file_name)
+            os.remove(file_name)
+            is_file_exists = os.path.exists(file_name)
             if is_file_exists is False:
                 self._module_log.add(LogLevel.INFO, f'File "{file_name}" has been deleted')
 
         else:
             self._module_log.add(LogLevel.WARNING, f'File "{file_name}" has not been downloaded')
-
-
-class ModuleHelper:
-
-    def __init__(self, file_name_regexp_pattern):
-        self._file_name_regexp_pattern = file_name_regexp_pattern
 
     def filter_files(self, file_list):
         compile_prefix = re.compile(self._file_name_regexp_pattern)
@@ -80,17 +75,11 @@ class ModuleHelper:
         return filter_trackors
 
     def get_fuze_id(self, file_name):
-        fuze_id = re.search(r'\d+\.', file_name)
+        fuze_id = re.search(self._fuze_id_regexp_pattern, file_name)
         if fuze_id is not None:
             fuze_id = fuze_id.group()[:-1]
 
         return fuze_id
-
-    def check_file_exist(self, file_name):
-        return os.path.exists(file_name)
-
-    def delete_file(self, file_name):
-        os.remove(file_name)
 
 
 class ModuleError(Exception):
@@ -145,7 +134,7 @@ class SFTPData:
     
     def connect(self):
         cnopts = SFTPHelper(False, False, None, None)
-        sftp = pysftp.Connection(host=self._url, username=self._username, password=self._password, cnopts = cnopts)
+        sftp = pysftp.Connection(host=self._url, username=self._username, password=self._password, cnopts=cnopts)
 
         return sftp
 
