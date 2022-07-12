@@ -7,7 +7,7 @@ import json
 import re
 from jsonschema import validate
 from onevizion import IntegrationLog, LogLevel
-from module import SFTPData, TrackorData, Module, ModuleError
+from module import SFTPData, TrackorData, Module, ModuleError, ModuleService
 
 
 with open('settings.json', 'rb') as PFile:
@@ -43,7 +43,8 @@ log_level = module_data['logLevel']
 module_log = IntegrationLog(process_id, ov_url, ov_access_key, ov_secret_key, None, True, log_level)
 sftp_data = SFTPData(sftp_url, sftp_username, sftp_password, sftp_directory, sftp_directory_archive)
 trackor_data = TrackorData(ov_url, ov_access_key, ov_secret_key)
-module = Module(module_log, sftp_data, trackor_data, sftp_file_name_regexp_pattern, sftp_fuze_id_regexp_pattern)
+module_service = ModuleService(module_log, sftp_data, trackor_data, sftp_file_name_regexp_pattern, sftp_fuze_id_regexp_pattern)
+module = Module(module_log, module_service, sftp_data, trackor_data)
 
 try:
     module.start()
