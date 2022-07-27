@@ -65,12 +65,12 @@ class ModuleService:
         return filtered_files
 
     def filter_trackors(self, trackor_data, fuze_id):
-        filter_trackors = []
+        filtered_trackors = []
         for trackor in trackor_data:
             if trackor[TrackorData.FUZE_ID] == fuze_id:
-                filter_trackors.append(trackor[TrackorData.TRACKOR_ID])
+                filtered_trackors.append(trackor[TrackorData.TRACKOR_ID])
 
-        return filter_trackors
+        return filtered_trackors
 
     def get_fuze_id(self, file_name):
         fuze_id = re.search(self._fuze_id_regexp_pattern, file_name)
