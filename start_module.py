@@ -10,7 +10,7 @@ from onevizion import IntegrationLog, LogLevel
 from module import Module, ModuleError
 
 
-with open('fill_settings.json', 'rb') as PFile:
+with open('settings.json', 'rb') as PFile:
     settings_data = json.loads(PFile.read().decode('utf-8'))
 
 with open('settings_schema.json', 'rb') as PFile:
