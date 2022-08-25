@@ -18,33 +18,33 @@ class Module:
 
         with self._sftp_data.connect() as sftp:
             file_list = self._sftp_data.get_file_list(sftp)
-            filtered_file_list = self.filter_files(file_list, self._file_name_regexp_pattern)
+            filtered_file_list = self._filter_files(file_list, self._file_name_regexp_pattern)
             self._module_log.add(LogLevel.INFO, f'{len(filtered_file_list)} files found')
 
             for file_name in filtered_file_list:
-                fuze_id = self.get_fuze_id(file_name, self._fuze_id_regexp_pattern)
+                fuze_id = self._get_fuze_id(file_name, self._fuze_id_regexp_pattern)
                 trackor_data = self._trackor_data.get_trackors(fuze_id)
-                filtered_trackors = self.filter_trackors(trackor_data, fuze_id)
+                filtered_trackors = self._filter_trackors(trackor_data, fuze_id)
                 self._module_log.add(LogLevel.INFO, f'{len(filtered_trackors)} Trackors found for file "{file_name}"')
                 if len(filtered_trackors) > 0:
-                    self.process_file_data(sftp, file_name, filtered_trackors)
+                    self._process_file_data(sftp, file_name, filtered_trackors)
 
         self._module_log.add(LogLevel.INFO, 'Module has been completed')
 
-    def filter_files(self, file_list: list, file_name_regexp_pattern: str) -> list:
+    def _filter_files(self, file_list: list, file_name_regexp_pattern: str) -> list:
         compile_prefix = re.compile(file_name_regexp_pattern)
         filtered_files = list(filter(compile_prefix.search, file_list))
 
         return filtered_files
 
-    def get_fuze_id(self, file_name: str, fuze_id_regexp_pattern: str) -> str:
+    def _get_fuze_id(self, file_name: str, fuze_id_regexp_pattern: str) -> str:
         fuze_id = re.search(fuze_id_regexp_pattern, file_name)
         if fuze_id is not None:
             fuze_id = fuze_id.group()[:-1]
 
         return fuze_id
 
-    def filter_trackors(self, trackor_data: list, fuze_id: str) -> list:
+    def _filter_trackors(self, trackor_data: list, fuze_id: str) -> list:
         filtered_trackors = []
         for trackor in trackor_data:
             if trackor[TrackorData.FUZE_ID] == fuze_id:
@@ -52,7 +52,7 @@ class Module:
 
         return filtered_trackors
 
-    def process_file_data(self, sftp: Connection, file_name: str, filtered_trackors: list) -> None:
+    def _process_file_data(self, sftp: Connection, file_name: str, filtered_trackors: list) -> None:
         self._sftp_data.download_file(sftp, file_name)
         is_file_exists = os.path.exists(file_name)
         if is_file_exists:
@@ -120,8 +120,7 @@ class SFTPData:
 
     def connect(self) -> Connection:
         try:
-            return Connection(host=self._url, username=self._username,
-                              password=self._password, cnopts=self._cnopts)
+            return Connection(host=self._url, username=self._username, password=self._password, cnopts=self._cnopts)
         except Exception as exception:
             raise ModuleError('Failed to connect', exception) from exception
 
