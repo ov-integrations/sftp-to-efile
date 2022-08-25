@@ -1,7 +1,9 @@
 import sys
 import subprocess
 
-subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-r', 'python_dependencies.txt'])
+installed_dependencies = subprocess.check_output([sys.executable, '-m', 'pip', 'install', '-r', 'python_dependencies.txt']).decode().strip()
+if 'Successfully installed' in installed_dependencies:
+    raise Exception('Some required dependent libraries were installed. Module execution has to be terminated now to use installed libraries on the next scheduled launch.')
 
 import json
 import re
@@ -10,11 +12,11 @@ from onevizion import IntegrationLog, LogLevel
 from module import Module, ModuleError
 
 
-with open('settings.json', 'rb') as PFile:
-    settings_data = json.loads(PFile.read().decode('utf-8'))
+with open('settings.json', 'rb') as settings_file:
+    settings_data = json.loads(settings_file.read().decode('utf-8'))
 
-with open('settings_schema.json', 'rb') as PFile:
-    data_schema = json.loads(PFile.read().decode('utf-8'))
+with open('settings_schema.json', 'rb') as settings_schema_file:
+    data_schema = json.loads(settings_schema_file.read().decode('utf-8'))
 
 try:
     validate(instance = settings_data, schema = data_schema)
@@ -25,8 +27,8 @@ ov_url = re.sub('^http://|^https://', '', settings_data['ovUrl'][:-1])
 ov_access_key = settings_data['ovAccessKey']
 ov_secret_key = settings_data['ovSecretKey']
 
-with open('ihub_parameters.json', 'rb') as PFile:
-    module_data = json.loads(PFile.read().decode('utf-8'))
+with open('ihub_parameters.json', 'rb') as ihub_parameters_file:
+    module_data = json.loads(ihub_parameters_file.read().decode('utf-8'))
 
 process_id = module_data['processId']
 log_level = module_data['logLevel']

@@ -1,4 +1,4 @@
-import re
+from re import compile, Pattern
 import os
 from pysftp import Connection
 from onevizion import LogLevel, IntegrationLog, Trackor
@@ -8,10 +8,10 @@ class Module:
 
     def __init__(self, ov_module_log: IntegrationLog, ov_url: str, settings_data: dict) -> None:
         self._module_log = ov_module_log
-        self._sftp_data = SFTPData(settings_data)
-        self._trackor_data = TrackorData(ov_url, settings_data)
-        self._file_name_regexp_pattern = settings_data['sftpFileNameRegexpPattern']
-        self._fuze_id_regexp_pattern = settings_data['sftpFuzeIdRegexpPattern']
+        self._sftp_data = SFTPService(settings_data)
+        self._trackor_data = TrackorService(ov_url, settings_data)
+        self._file_name_regexp_pattern = compile(settings_data['sftpFileNameRegexpPattern'])
+        self._fuze_id_regexp_pattern = compile(settings_data['sftpFuzeIdRegexpPattern'])
 
     def start(self):
         self._module_log.add(LogLevel.INFO, 'Starting Module')
@@ -31,14 +31,11 @@ class Module:
 
         self._module_log.add(LogLevel.INFO, 'Module has been completed')
 
-    def _filter_files(self, file_list: list, file_name_regexp_pattern: str) -> list:
-        compile_prefix = re.compile(file_name_regexp_pattern)
-        filtered_files = list(filter(compile_prefix.search, file_list))
+    def _filter_files(self, file_list: list, file_name_regexp_pattern: Pattern) -> list:
+        return list(filter(file_name_regexp_pattern.search, file_list))
 
-        return filtered_files
-
-    def _get_fuze_id(self, file_name: str, fuze_id_regexp_pattern: str) -> str:
-        fuze_id = re.search(fuze_id_regexp_pattern, file_name)
+    def _get_fuze_id(self, file_name: str, fuze_id_regexp_pattern: Pattern) -> str:
+        fuze_id = fuze_id_regexp_pattern.search(file_name)
         if fuze_id is not None:
             fuze_id = fuze_id.group()[:-1]
 
@@ -47,8 +44,8 @@ class Module:
     def _filter_trackors(self, trackor_data: list, fuze_id: str) -> list:
         filtered_trackors = []
         for trackor in trackor_data:
-            if trackor[TrackorData.FUZE_ID] == fuze_id:
-                filtered_trackors.append(trackor[TrackorData.TRACKOR_ID])
+            if trackor[TrackorService.FUZE_ID_FILED] == fuze_id:
+                filtered_trackors.append(trackor[TrackorService.TRACKOR_ID])
 
         return filtered_trackors
 
@@ -71,12 +68,12 @@ class Module:
             self._module_log.add(LogLevel.WARNING, f'File "{file_name}" has not been downloaded')
 
 
-class TrackorData:
+class TrackorService:
     TRACKOR_ID = 'TRACKOR_ID'
-    PROJECT_STATUS = 'P_PROJECT_STATUS'
-    FUZE_ID = 'P_FUZE_PROJECT_ID_FZ'
+    PROJECT_STATUS_FIELD = 'P_PROJECT_STATUS'
+    FUZE_ID_FILED = 'P_FUZE_PROJECT_ID_FZ'
     EFILE_FIELD = 'P_MMUAT_FILE_SA'
-    ACTIVE_STATUS = 'Active'
+    PROJECT_STATUS_ACTIVE_VALUE = 'Active'
 
     def __init__(self, ov_url: str, settings_data: dict) -> None:
         self._ov_trackor_type = Trackor(trackorType='Project', URL=ov_url, userName=settings_data['ovAccessKey'],
@@ -84,9 +81,9 @@ class TrackorData:
 
     def get_trackors(self, fuze_id: str) -> list:
         self._ov_trackor_type.read(
-            filters={TrackorData.PROJECT_STATUS: TrackorData.ACTIVE_STATUS,
-                     TrackorData.FUZE_ID: fuze_id},
-            fields={TrackorData.FUZE_ID}
+            filters={TrackorService.PROJECT_STATUS_FIELD: TrackorService.PROJECT_STATUS_ACTIVE_VALUE,
+                     TrackorService.FUZE_ID_FILED: fuze_id},
+            fields={TrackorService.FUZE_ID_FILED}
         )
 
         if len(self._ov_trackor_type.errors) == 0:
@@ -97,7 +94,7 @@ class TrackorData:
     def upload_file(self, trackor_id: int, file_name: str) -> list:
         self._ov_trackor_type.UploadFile(
             trackorId=trackor_id,
-            fieldName=TrackorData.EFILE_FIELD,
+            fieldName=TrackorService.EFILE_FIELD,
             fileName=file_name
         )
 
@@ -108,7 +105,7 @@ class TrackorData:
                           self._ov_trackor_type.errors)
 
 
-class SFTPData:
+class SFTPService:
 
     def __init__(self, settings_data: dict) -> None:
         self._url = settings_data['sftpUrl']
