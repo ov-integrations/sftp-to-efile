@@ -20,20 +20,21 @@ class Module:
 
         with self._sftp_service.connect() as sftp:
             file_list = self._sftp_service.get_file_list(sftp)
-            for regexp_pattern in self._settings_data['regexpPatterns']:
-                trackor_type = regexp_pattern['ovTrackorType']
-                filtered_file_list = self._filter_files(file_list, regexp_pattern['sftpFileNameRegexpPattern'])
-                self._module_log.add(LogLevel.INFO, f'{len(filtered_file_list)} files found')
+            for regexp_patterns in self._settings_data['regexpPatterns']:
+                trackor_type = regexp_patterns['ovTrackorType']
+                regexp_pattern = regexp_patterns['sftpFileNameRegexpPattern']
+                filtered_file_list = self._filter_files(file_list, regexp_pattern)
+                self._module_log.add(LogLevel.INFO, f'{len(filtered_file_list)} files found for the regexp pattern "{regexp_pattern}"')
 
                 for file_name in filtered_file_list:
-                    trackor_filter_dict = self._get_trackor_filter_dict(regexp_pattern['ovTrackorFilters'], file_name)
+                    trackor_filter_dict = self._get_trackor_filter_dict(regexp_patterns['ovTrackorFilters'], file_name)
                     trackor_fields = trackor_filter_dict[Module.TRACKOR_FIELDS]
                     trackor_filter = trackor_filter_dict[Module.TRACKOR_FILTER]
                     trackor_data = self._trackor_service.get_trackors(trackor_type, trackor_fields, trackor_filter)
                     filtered_trackors = self._filter_trackors(trackor_fields, trackor_data, trackor_filter)
                     self._module_log.add(LogLevel.INFO, f'{len(filtered_trackors)} Trackors found for the file "{file_name}"')
                     if len(trackor_data) > 0:
-                        self._process_file_data(sftp, regexp_pattern['ovEfileFieldName'], file_name,
+                        self._process_file_data(sftp, regexp_patterns['ovEfileFieldName'], file_name,
                             filtered_trackors, trackor_type)
 
         self._module_log.add(LogLevel.INFO, 'Module has been completed')
@@ -67,10 +68,14 @@ class Module:
 
                 search_trigger = search_trigger.replace(Module.VALUE_TO_REPLACE, value_from_file_name)
 
-            trackor_filter = f'{trackor_filter} {search_trigger}'
+            if len(trackor_filter) == 0:
+                trackor_filter = f'{search_trigger}'
+
+            else:
+                trackor_filter = f'{trackor_filter} and {search_trigger}'
 
         trackor_filter_dict[Module.TRACKOR_FIELDS] = trackor_fields[:-1]
-        trackor_filter_dict[Module.TRACKOR_FILTER] = trackor_filter[1:]
+        trackor_filter_dict[Module.TRACKOR_FILTER] = trackor_filter
 
         return trackor_filter_dict
 

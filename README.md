@@ -7,11 +7,8 @@ You need to fill in the regexpPatterns parameter to specify what data the Module
   * ovTrackorType - contains the Trackor Type to which the files will be transferred
   * ovEfileFieldName - contains the name of the field to which the files will be transferred
   * ovTrackorFilters - list of dictionaries with data that will be used to filter Trackors
-    * searchTrigger - the filter itself. It must match the following construction "equal(FIELD_NAME,VALUE)"
-    
-    You can add multiple filters, so the searchTrigger value will be different for the first and subsequent ones.
-    For the first, it would be "equal" or "not equal". For the later ones it can also be "equal" or "not equal", but before that you have to specify "and" or "or", so you end up with, for example, "and equal" or "or not equal"
-    
+    * searchTrigger - the filter itself. It must match the following construction "equal(FIELD_NAME,VALUE)" or "not equal(FIELD_NAME,VALUE)"
+
     The VALUE value can either be a constant and then you only have to specify the searchTrigger parameter and that value in it. Otherwise, if the value is not a constant, you must specify it as "{value}" and also add the valueTrigger parameter.
     * valueTrigger - dictionary containing regexp pattern for selecting data from filename
       * regexpPattern - contains a regexp pattern

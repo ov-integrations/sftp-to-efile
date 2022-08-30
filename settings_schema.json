@@ -53,7 +53,7 @@
                             "properties": {
                                 "searchTrigger": {
                                     "type": "string",
-                                    "pattern": "^equal\\(|^(and|not|or) (not equal|equal)\\("
+                                    "pattern": "^equal\\(|^not equal\\("
                                 },
                                 "valueTrigger": {
                                     "type": "object",
