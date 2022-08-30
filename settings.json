@@ -4,10 +4,41 @@
     "sftpPassword": "************",
     "sftpDirectory": "/***/***/",
     "sftpDirectoryArchive": "/***/***/",
-    "sftpFileNameRegexpPattern": "\\w+_\\w+_\\w+_\\d{8}_\\d+_([a-zA-Z]+\\d+|\\d+).zip",
-    "sftpFuzeIdRegexpPattern": "([a-zA-Z]+\\d+|\\d+)\\.",
 
     "ovUrl": "https://***.onevizion.com/",
     "ovAccessKey": "******",
-    "ovSecretKey": "************"
+    "ovSecretKey": "************",
+
+    "regexpPatterns": [
+        {
+            "sftpFileNameRegexpPattern": "^\\w+_\\w+_\\w+_\\d{8}_\\d{6}_([a-zA-Z]+\\d+|\\d+)\\.zip",
+            "ovTrackorType": "******",
+            "ovTrackorFilters": [
+                {
+                    "searchTrigger": "equal(******,{value})",
+                    "valueTrigger": {
+                        "regexpPattern": "([a-zA-Z]+\\d+|\\d+)\\.zip$",
+                        "removePart": ".zip"
+                    }
+                },
+                {
+                    "searchTrigger": "and equal(******,******)"
+                }
+            ],
+            "ovEfileFieldName": "******"
+        },
+        {
+            "sftpFileNameRegexpPattern": "^[a-zA-Z0-9]+\\-[A-Z]+\\-\\d+_LTE_\\w+_[a-zA-Z0-9]+_[0-9-]+_\\d{6}\\.zip",
+            "ovTrackorType": "******",
+            "ovTrackorFilters": [
+                {
+                    "searchTrigger": "equal(******,{value})",
+                    "valueTrigger": {
+                        "regexpPattern": "^[a-zA-Z0-9]+\\-[A-Z]+\\-\\d+"
+                    }
+                }
+            ],
+            "ovEfileFieldName": "******"
+        }
+    ]
 }
