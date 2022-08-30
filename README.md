@@ -41,7 +41,7 @@ Example of settings.json
                     }
                 },
                 {
-                    "searchTrigger": "and equal(P_PROJECT_STATUS,Active)"
+                    "searchTrigger": "equal(P_PROJECT_STATUS,Active)"
                 }
             ],
             "ovEfileFieldName": "P_MMUAT_FILE_SA"

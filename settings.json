@@ -22,7 +22,7 @@
                     }
                 },
                 {
-                    "searchTrigger": "and equal(******,******)"
+                    "searchTrigger": "equal(******,******)"
                 }
             ],
             "ovEfileFieldName": "******"
