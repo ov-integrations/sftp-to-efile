@@ -6,12 +6,10 @@
             "minLength": 1
         },
         "sftpUserName": {
-            "type": "string",
-            "minLength": 1
+            "type": "string"
         },
         "sftpPassword": {
-            "type": "string",
-            "minLength": 1
+            "type": "string"
         },
         "sftpDirectory": {
             "type": "string",
@@ -26,38 +24,40 @@
             "pattern": "^https://.*|^http://.*"
         },
         "ovAccessKey": {
-            "type": "string",
-            "minLength": 1
+            "type": "string"
         },
         "ovSecretKey": {
-            "type": "string",
-            "minLength": 1
+            "type": "string"
         },
-        "regexpPatterns": {
+        "sftpFileToOvMappings": {
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
                     "sftpFileNameRegexpPattern": {
-                        "type": "string",
-                        "minLength": 1
+                        "type": "string"
                     },
                     "ovTrackorType": {
-                        "type": "string",
-                        "minLength": 1
+                        "type": "string"
                     },
-                    "ovTrackorFilters": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "searchTrigger": {
-                                    "type": "string",
-                                    "pattern": "^equal\\(|^not equal\\("
-                                },
-                                "valueTrigger": {
+                    "ovEfileFieldName": {
+                        "type": "string"
+                    },
+                    "ovFieldMappings": {
+                        "type": "object",
+                        "properties": {
+                            "searchConditions": {
+                                "type": "string"
+                            },
+                            "searchConditionsParams": {
+                                "type": "array",
+                                "items": {
                                     "type": "object",
                                     "properties": {
+                                        "paramName": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
                                         "regexpPattern": {
                                             "type": "string",
                                             "minLength": 1
@@ -68,21 +68,17 @@
                                         }
                                     }
                                 }
-                            },
-                            "required": ["searchTrigger"]
-                        }
-                    },
-                    "ovEfileFieldName": {
-                        "type": "string",
-                        "minLength": 1
+                            }
+                        },
+                        "required": ["searchConditions"]
                     }
                 },
-                "required": ["sftpFileNameRegexpPattern", "ovTrackorType", "ovTrackorFilters", "ovEfileFieldName"]
+                "required": ["sftpFileNameRegexpPattern", "ovTrackorType", "ovEfileFieldName", "ovFieldMappings"]
             }
         }
     },
     "required": [
         "sftpUrl", "sftpUserName", "sftpPassword", "sftpDirectory", 
         "sftpDirectoryArchive", "ovUrl", "ovAccessKey",
-        "ovSecretKey", "regexpPatterns"]
+        "ovSecretKey", "sftpFileToOvMappings"]
 }
