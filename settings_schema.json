@@ -34,7 +34,7 @@
             "items": {
                 "type": "object",
                 "properties": {
-                    "sftpFileNameRegexpPattern": {
+                    "sftpFileNameRegexp": {
                         "type": "string"
                     },
                     "ovTrackorType": {
@@ -43,7 +43,7 @@
                     "ovEfileFieldName": {
                         "type": "string"
                     },
-                    "ovFieldMappings": {
+                    "ovTrackorFilter": {
                         "type": "object",
                         "properties": {
                             "searchConditions": {
@@ -58,7 +58,7 @@
                                             "type": "string",
                                             "minLength": 1
                                         },
-                                        "regexpPattern": {
+                                        "paramValueRegexp": {
                                             "type": "string",
                                             "minLength": 1
                                         }
@@ -69,7 +69,7 @@
                         "required": ["searchConditions"]
                     }
                 },
-                "required": ["sftpFileNameRegexpPattern", "ovTrackorType", "ovEfileFieldName", "ovFieldMappings"]
+                "required": ["sftpFileNameRegexp", "ovTrackorType", "ovEfileFieldName", "ovTrackorFilter"]
             }
         }
     },

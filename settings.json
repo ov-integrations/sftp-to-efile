@@ -11,29 +11,29 @@
 
     "sftpFileToOvMappings": [
         {
-            "sftpFileNameRegexpPattern": "^\\w+_\\w+_\\w+_\\d{8}_\\d{6}_([a-zA-Z]+\\d+|\\d+)\\.zip",
+            "sftpFileNameRegexp": "^\\w+_\\w+_\\w+_\\d{8}_\\d{6}_([a-zA-Z0-9]+)\\.zip",
             "ovTrackorType": "******",
             "ovEfileFieldName": "******",
-            "ovFieldMappings": {
-                "searchConditions": "equal(******,:value1) and equal(******,value2)",
+            "ovTrackorFilter": {
+                "searchConditions": "equal(******,\\\":value1\\\") and equal(******,value2)",
                 "searchConditionsParams": [
                     {
                         "paramName": "value1",
-                        "regexpPattern": "(.+)\\.zip$"
+                        "paramValueRegexp": "([a-zA-Z0-9]+)\\.zip$"
                     }
                 ]
             }
         },
         {
-            "sftpFileNameRegexpPattern": "^[a-zA-Z0-9]+\\-[A-Z]+\\-\\d+_LTE_\\w+_[a-zA-Z0-9]+_[0-9-]+_\\d{6}\\.zip",
+            "sftpFileNameRegexp": "^[a-zA-Z0-9]+\\-[A-Z]+\\-\\d+_LTE_\\w+_[a-zA-Z0-9]+_[0-9-]+_\\d{6}\\.zip",
             "ovTrackorType": "******",
             "ovEfileFieldName": "******",
-            "ovFieldMappings": {
+            "ovTrackorFilter": {
                 "searchConditions": "equal(******,:value1)",
                 "searchConditionsParams": [
                     {
                         "paramName": "value1",
-                        "regexpPattern": "^[a-zA-Z0-9]+\\-[A-Z]+\\-\\d+"
+                        "paramValueRegexp": "^[a-zA-Z0-9]+\\-[A-Z]+\\-\\d+"
                     }
                 ]
             }
