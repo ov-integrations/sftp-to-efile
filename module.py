@@ -49,9 +49,8 @@ class Module:
             value_from_file_name = None
             param_name = conditions_params['paramName'] if 'paramName' in conditions_params else None
             regexp_pattern = conditions_params['regexpPattern'] if 'regexpPattern' in conditions_params else None
-            remove_part = conditions_params['removePart'] if 'removePart' in conditions_params else None
 
-            value_from_file_name = self._get_value_from_file_name(file_name, regexp_pattern, remove_part)
+            value_from_file_name = self._get_value_from_file_name(file_name, regexp_pattern)
             if value_from_file_name is None:
                 self._module_log(LogLevel.WARNING,
                     f'Failed to get value for regexp pattern "{regexp_pattern}" ' \
@@ -61,14 +60,11 @@ class Module:
 
         return search_conditions
 
-    def _get_value_from_file_name(self, file_name: str, regexp_pattern: str, remove_part: str) -> str:
+    def _get_value_from_file_name(self, file_name: str, regexp_pattern: str) -> str:
         compile_prefix = re.compile(regexp_pattern)
         value_from_file_name = compile_prefix.search(file_name)
         if value_from_file_name is not None:
-            value_from_file_name = value_from_file_name.group()
-
-            if remove_part is not None:
-                value_from_file_name = value_from_file_name.replace(remove_part, '')
+            value_from_file_name = value_from_file_name.group(1)
 
         return value_from_file_name
 

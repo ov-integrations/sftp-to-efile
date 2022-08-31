@@ -19,8 +19,7 @@
                 "searchConditionsParams": [
                     {
                         "paramName": "value1",
-                        "regexpPattern": "([a-zA-Z]+\\d+|\\d+)\\.zip$",
-                        "removePart": ".zip"
+                        "regexpPattern": "(.+)\\.zip$"
                     }
                 ]
             }

@@ -61,10 +61,6 @@
                                         "regexpPattern": {
                                             "type": "string",
                                             "minLength": 1
-                                        },
-                                        "removePart": {
-                                            "type": "string",
-                                            "minLength": 1
                                         }
                                     }
                                 }

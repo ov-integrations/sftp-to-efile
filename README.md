@@ -11,7 +11,6 @@ Module retrieves files from SFTP, filters them by file name using parameters set
   * searchConditionsParams - objects list. Object contains:
     * paramName - parameter name. It must be written instead of values in searchConditions
     * regexpPattern - a regexp pattern
-    * removePart - it is needed to remove some of what will be found with regexpPattern, to do this use replace, which removes what is specified in this parameter
 
 
 Example of settings.json
@@ -38,8 +37,7 @@ Example of settings.json
                 "searchConditionsParams": [
                     {
                         "paramName": "value1",
-                        "regexpPattern": "([a-zA-Z]+\\d+|\\d+)\\.zip$",
-                        "removePart": ".zip"
+                        "regexpPattern": "(.+)\\.zip$"
                     }
                 ]
             }
