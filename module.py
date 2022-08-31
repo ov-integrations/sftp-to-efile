@@ -44,13 +44,12 @@ class Module:
     def _get_search_conditions(self, trackor_filter: dict, file_name: str) -> str:
         search_conditions = trackor_filter['searchConditions']
         for conditions_params in trackor_filter['searchConditionsParams']:
-            value_from_file_name = None
             param_name = conditions_params['paramName'] if 'paramName' in conditions_params else None
             param_regexp_pattern = conditions_params['paramValueRegexp'] if 'paramValueRegexp' in conditions_params else None
 
             value_from_file_name = self._get_value_from_file_name(file_name, param_regexp_pattern)
             if value_from_file_name is None:
-                self._module_log(LogLevel.WARNING,
+                self._module_log.add(LogLevel.WARNING,
                     f'Failed to get value for regexp pattern "{param_regexp_pattern}" ' \
                     f'from file name "{file_name}" for trackor filter')
 
@@ -106,10 +105,10 @@ class TrackorService:
             fields={TrackorService.TRACKOR_KEY}
         )
 
-        if len(ov_trackor_type.errors) == 0:
-            return ov_trackor_type.jsonData
+        if len(ov_trackor_type.errors) != 0:
+            raise ModuleError(f'Failed to get trackors equal to "{search_value}"', ov_trackor_type.errors)
 
-        raise ModuleError(f'Failed to get trackors equal to "{search_value}"', ov_trackor_type.errors)
+        return ov_trackor_type.jsonData
 
     def upload_file(self, trackor_type: str, trackor_id: int, field_name: str, file_name: str) -> list:
         ov_trackor_type = Trackor(trackorType=trackor_type, URL=self._ov_url,
@@ -121,11 +120,11 @@ class TrackorService:
             fileName=file_name
         )
 
-        if len(ov_trackor_type.errors) == 0:
-            return ov_trackor_type.jsonData
+        if len(ov_trackor_type.errors) != 0:
+            raise ModuleError(f'Failed to upload the file "{file_name}" for Trackor ID "{trackor_id}"',
+                ov_trackor_type.errors)
 
-        raise ModuleError(f'Failed to upload the file "{file_name}" for Trackor ID "{trackor_id}"',
-            ov_trackor_type.errors)
+        return ov_trackor_type.jsonData
 
 
 class SFTPService:
