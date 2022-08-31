@@ -43,7 +43,7 @@ Example of settings.json
             }
         },
         {
-            "sftpFileNameRegexp": "^[a-zA-Z0-9]+\\-[A-Z]+\\-\\d+_LTE_\\w+_[a-zA-Z0-9]+_[0-9-]+_\\d{6}\\.zip",
+            "sftpFileNameRegexp": "^(.+?)_LTE_\\w+_[a-zA-Z0-9]+_[0-9-]+_\\d{6}\\.zip",
             "ovTrackorType": "Project",
             "ovEfileFieldName": "P_LTE_ENV",
             "ovTrackorFilter": {
@@ -51,7 +51,7 @@ Example of settings.json
                 "searchConditionsParams": [
                     {
                         "paramName": "value1",
-                        "paramValueRegexp": "^[a-zA-Z0-9]+\\-[A-Z]+\\-\\d+"
+                        "paramValueRegexp": "^(.+?)_"
                     }
                 ]
             }
