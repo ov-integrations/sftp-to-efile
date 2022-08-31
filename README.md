@@ -10,7 +10,7 @@ Module retrieves files from SFTP, filters them by file name using parameters set
   * searchConditions* - search string. More details can be found in the API documentation in the trackors section in Search Trackors. Either a constant or parameter names are used as values
   * searchConditionsParams - objects list. Object contains:
     * paramName - parameter name. It must be written instead of values in searchConditions
-    * paramValueRegexp - a regexp pattern
+    * paramValueRegexp - a regexp pattern. Applies to the file name and gets the value from it
 
 
 Example of settings.json
