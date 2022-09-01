@@ -25,6 +25,9 @@ class Module:
                     f'for the regexp pattern "{file_name_regexp_pattern}"')
 
                 for file_name in filtered_file_list:
+                    if self._sftp_service.is_directory(sftp, file_name):
+                        continue
+
                     trackor_filter = sftp_file_to_ov_mapping['ovTrackorFilter']
                     search_conditions = self._build_search_conditions(trackor_filter, file_name)
                     trackor_data = self._trackor_service.get_trackors(trackor_type, search_conditions)
@@ -149,6 +152,12 @@ class SFTPService:
             raise ModuleError('Failed to get_file_list', exception) from exception
 
         return file_list
+
+    def is_directory(self, sftp: Connection, file_name: str) -> bool:
+        try:
+            return sftp.isdir(f'{self._directory}{file_name}')
+        except Exception as exception:
+            raise ModuleError(f'The directory for the file "{file_name}" failed to be checked', exception) from exception
 
     def download_file(self, sftp: Connection, file_name: str) -> None:
         try:
