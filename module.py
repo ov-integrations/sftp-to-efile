@@ -5,7 +5,6 @@ from onevizion import LogLevel, IntegrationLog, Trackor
 
 
 class Module:
-    SEARCH_FIELD_PATTERN = 'equal\\([a-zA-Z0-9_]+,' # Example: equal(FIELD_NAME123,XXXX)
 
     def __init__(self, ov_module_log: IntegrationLog, ov_url: str, settings_data: dict) -> None:
         self._module_log = ov_module_log
