@@ -25,9 +25,6 @@ class Module:
                     f'for the regexp pattern "{file_name_regexp_pattern}"')
 
                 for file_name in filtered_file_list:
-                    if self._sftp_service.is_directory(sftp, file_name):
-                        continue
-
                     trackor_filter = sftp_file_to_ov_mapping['ovTrackorFilter']
                     search_conditions = self._build_search_conditions(trackor_filter, file_name)
                     trackor_data = self._trackor_service.get_trackors(trackor_type, search_conditions)
@@ -39,8 +36,8 @@ class Module:
         self._module_log.add(LogLevel.INFO, 'Module has been completed')
 
     def _filter_files(self, file_list: list, file_name_regexp_pattern: str) -> list:
-        compile_regexp_pattern = re.compile(file_name_regexp_pattern)
-        filtered_files = list(filter(compile_regexp_pattern.search, file_list))
+        file_name_regexp_pattern_compiled = re.compile(file_name_regexp_pattern)
+        filtered_files = list(filter(file_name_regexp_pattern_compiled.search, file_list))
 
         return filtered_files
 
@@ -148,12 +145,16 @@ class SFTPService:
         try:
             with sftp.cd(self._directory):
                 file_list = sftp.listdir()
+
+            for file_name in file_list:
+                if self._is_directory(sftp, file_name):
+                    file_list.remove(file_name)
         except Exception as exception:
             raise ModuleError('Failed to get_file_list', exception) from exception
 
         return file_list
 
-    def is_directory(self, sftp: Connection, file_name: str) -> bool:
+    def _is_directory(self, sftp: Connection, file_name: str) -> bool:
         try:
             return sftp.isdir(f'{self._directory}{file_name}')
         except Exception as exception:
