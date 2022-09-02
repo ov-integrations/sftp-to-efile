@@ -4,10 +4,39 @@
     "sftpPassword": "************",
     "sftpDirectory": "/***/***/",
     "sftpDirectoryArchive": "/***/***/",
-    "sftpFileNameRegexpPattern": "\\w+_\\w+_\\w+_\\d{8}_\\d+_([a-zA-Z]+\\d+|\\d+).zip",
-    "sftpFuzeIdRegexpPattern": "([a-zA-Z]+\\d+|\\d+)\\.",
 
     "ovUrl": "https://***.onevizion.com/",
     "ovAccessKey": "******",
-    "ovSecretKey": "************"
+    "ovSecretKey": "************",
+
+    "sftpFileToOvMappings": [
+        {
+            "sftpFileNameRegexp": "^\\w+_\\w+_\\w+_\\d{8}_\\d{6}_([a-zA-Z0-9]+)\\.zip",
+            "ovTrackorType": "******",
+            "ovEfileFieldName": "******",
+            "ovTrackorFilter": {
+                "searchConditions": "equal(******,\\\":value1\\\") and equal(******,value2)",
+                "searchConditionsParams": [
+                    {
+                        "paramName": "value1",
+                        "paramValueRegexp": "([a-zA-Z0-9]+)\\.zip$"
+                    }
+                ]
+            }
+        },
+        {
+            "sftpFileNameRegexp": "^(.+?)_LTE_(.+)_[0-9-]+_\\d{6}\\.zip",
+            "ovTrackorType": "******",
+            "ovEfileFieldName": "******",
+            "ovTrackorFilter": {
+                "searchConditions": "equal(******,:value1)",
+                "searchConditionsParams": [
+                    {
+                        "paramName": "value1",
+                        "paramValueRegexp": "^(.+?)_"
+                    }
+                ]
+            }
+        }
+    ]
 }

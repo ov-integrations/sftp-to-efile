@@ -6,12 +6,10 @@
             "minLength": 1
         },
         "sftpUserName": {
-            "type": "string",
-            "minLength": 1
+            "type": "string"
         },
         "sftpPassword": {
-            "type": "string",
-            "minLength": 1
+            "type": "string"
         },
         "sftpDirectory": {
             "type": "string",
@@ -21,25 +19,62 @@
             "type": "string",
             "pattern": "^/.*/$"
         },
-        "sftpFileNameRegexpPattern": {
-            "type": "string",
-            "minLength": 1
-        },
-        "sftpFuzeIdRegexpPattern": {
-            "type": "string",
-            "minLength": 1
-        },
         "ovUrl": {
             "type": "string",
             "pattern": "^https://.*|^http://.*"
         },
         "ovAccessKey": {
-            "type": "string",
-            "minLength": 1
+            "type": "string"
         },
         "ovSecretKey": {
-            "type": "string",
-            "minLength": 1
+            "type": "string"
+        },
+        "sftpFileToOvMappings": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "sftpFileNameRegexp": {
+                        "type": "string"
+                    },
+                    "ovTrackorType": {
+                        "type": "string"
+                    },
+                    "ovEfileFieldName": {
+                        "type": "string"
+                    },
+                    "ovTrackorFilter": {
+                        "type": "object",
+                        "properties": {
+                            "searchConditions": {
+                                "type": "string"
+                            },
+                            "searchConditionsParams": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "paramName": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        },
+                                        "paramValueRegexp": {
+                                            "type": "string",
+                                            "minLength": 1
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "required": ["searchConditions"]
+                    }
+                },
+                "required": ["sftpFileNameRegexp", "ovTrackorType", "ovEfileFieldName", "ovTrackorFilter"]
+            }
         }
-    }
+    },
+    "required": [
+        "sftpUrl", "sftpUserName", "sftpPassword", "sftpDirectory", 
+        "sftpDirectoryArchive", "ovUrl", "ovAccessKey",
+        "ovSecretKey", "sftpFileToOvMappings"]
 }
