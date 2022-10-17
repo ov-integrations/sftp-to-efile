@@ -34,11 +34,9 @@ class Module:
                         self._process_file_data(sftp, sftp_file_to_ov_mapping['ovEfileFieldName'], file_name,
                             trackor_data, trackor_type)
 
-            list_of_files_to_delete = self._sftp_service.get_list_of_files_to_delete(sftp)
+            list_of_files_to_delete = self._get_list_of_files_to_delete(sftp)
             if len(list_of_files_to_delete) > 0:
-                self._module_log.add(LogLevel.INFO, f'Found {len(list_of_files_to_delete)} files to delete from the archive')
-                self._sftp_service.delete_file(sftp, list_of_files_to_delete)
-                self._module_log.add(LogLevel.INFO, f'{len(list_of_files_to_delete)} files have been deleted from the archive')
+                self._delete_files_from_archive(sftp, list_of_files_to_delete)
 
         self._module_log.add(LogLevel.INFO, 'Module has been completed')
 
@@ -91,6 +89,24 @@ class Module:
             except FileNotFoundError:
                 pass
 
+    def _get_list_of_files_to_delete(self, sftp: Connection) -> list:
+        list_of_files_to_delete = []
+        if self._sftp_service.number_of_days_to_delete_from_archive is not None:
+            day_to_delete = (datetime.now() - timedelta(days=self._sftp_service.number_of_days_to_delete_from_archive)).strftime("%m/%d/%Y")
+            for file_name in self._sftp_service.get_file_list(sftp, SFTPService.ARCHIVE):
+                file_info = self._sftp_service.get_file_info(sftp, file_name)
+                file_modification_date = datetime.fromtimestamp(file_info.st_mtime).strftime("%m/%d/%Y")
+                if day_to_delete > file_modification_date:
+                    list_of_files_to_delete.append(file_name)
+
+            self._module_log.add(LogLevel.INFO, f'Found {len(list_of_files_to_delete)} files to delete from the archive')
+
+        return list_of_files_to_delete
+
+    def _delete_files_from_archive(self, sftp: Connection, file_list: list) -> None:
+        for file_name in file_list:
+            self._sftp_service.delete_file(sftp, file_name)
+            self._module_log.add(LogLevel.DEBUG, f'File "{file_name}" has been deleted from the archive')
 
 class TrackorService:
     TRACKOR_ID_FIELD_NAME = 'TRACKOR_ID'
@@ -142,7 +158,7 @@ class SFTPService:
         self._password = settings_data['sftpPassword']
         self._directory = settings_data['sftpDirectory']
         self._archive = settings_data['sftpDirectoryArchive']
-        self._number_of_days_to_delete_from_archive = settings_data['sftpNumberOfDaysToDeleteFromArchive'] if 'sftpNumberOfDaysToDeleteFromArchive' in settings_data else None
+        self.number_of_days_to_delete_from_archive = settings_data['sftpNumberOfDaysToDeleteFromArchive'] if 'sftpNumberOfDaysToDeleteFromArchive' in settings_data else None
         self._cnopts = SFTPHelper()
 
     def connect(self) -> Connection:
@@ -188,24 +204,15 @@ class SFTPService:
             raise ModuleError(f'Failed to move the file "{file_name}" from {self._directory}{file_name} ' \
                 f'to {self._archive}{file_name}', exception) from exception
 
-    def get_list_of_files_to_delete(self, sftp: Connection) -> list:
-        if self._number_of_days_to_delete_from_archive is None:
-            return
-
-        list_of_files_to_delete = []
-        day_to_delete = (datetime.now() - timedelta(days=self._number_of_days_to_delete_from_archive)).strftime("%m/%d/%Y")
-        for file_name in self.get_file_list(sftp, SFTPService.ARCHIVE):
-            path_to_file = f'{self._archive}{file_name}'
-            file_modification_date = datetime.fromtimestamp(sftp.stat(path_to_file).st_mtime).strftime("%m/%d/%Y")
-            if day_to_delete > file_modification_date:
-                list_of_files_to_delete.append(path_to_file)
-
-        return list_of_files_to_delete
-
-    def delete_file(self, sftp: Connection, file_list: list) -> None:
+    def get_file_info(self, sftp: Connection, file_name: str) -> str:
         try:
-            for file_name in file_list:
-                sftp.remove(file_name)
+            return sftp.stat(f'{self._archive}{file_name}')
+        except Exception as exception:
+            raise ModuleError(f'Failed to get info for the file "{file_name}"', exception) from exception
+
+    def delete_file(self, sftp: Connection, file_name:str) -> None:
+        try:
+            sftp.remove(f'{self._archive}{file_name}')
         except Exception as exception:
             raise ModuleError(f'Failed to delete the file "{file_name}"', exception) from exception
 
