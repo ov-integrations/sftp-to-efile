@@ -1,5 +1,6 @@
 import re
 import os
+from datetime import datetime, timedelta
 from pysftp import Connection
 from onevizion import LogLevel, IntegrationLog, Trackor
 
@@ -16,7 +17,7 @@ class Module:
         self._module_log.add(LogLevel.INFO, 'Starting Module')
 
         with self._sftp_service.connect() as sftp:
-            file_list = self._sftp_service.get_file_list(sftp)
+            file_list = self._sftp_service.get_file_list(sftp, SFTPService.DIRECTORY)
             for sftp_file_to_ov_mapping in self._sftp_file_to_ov_mappings:
                 trackor_type = sftp_file_to_ov_mapping['ovTrackorType']
                 file_name_regexp_pattern = sftp_file_to_ov_mapping['sftpFileNameRegexp']
@@ -32,6 +33,12 @@ class Module:
                     if len(trackor_data) > 0:
                         self._process_file_data(sftp, sftp_file_to_ov_mapping['ovEfileFieldName'], file_name,
                             trackor_data, trackor_type)
+
+            list_of_files_to_delete = self._sftp_service.get_list_of_files_to_delete(sftp)
+            if len(list_of_files_to_delete) > 0:
+                self._module_log.add(LogLevel.INFO, f'Found {len(list_of_files_to_delete)} files to delete from the archive')
+                self._sftp_service.delete_file(sftp, list_of_files_to_delete)
+                self._module_log.add(LogLevel.INFO, f'{len(list_of_files_to_delete)} files have been deleted from the archive')
 
         self._module_log.add(LogLevel.INFO, 'Module has been completed')
 
@@ -126,6 +133,8 @@ class TrackorService:
 
 
 class SFTPService:
+    DIRECTORY = 'Directory'
+    ARCHIVE = 'Archive'
 
     def __init__(self, settings_data: dict) -> None:
         self._url = settings_data['sftpUrl']
@@ -133,6 +142,7 @@ class SFTPService:
         self._password = settings_data['sftpPassword']
         self._directory = settings_data['sftpDirectory']
         self._archive = settings_data['sftpDirectoryArchive']
+        self._number_of_days_to_delete_from_archive = settings_data['sftpNumberOfDaysToDeleteFromArchive'] if 'sftpNumberOfDaysToDeleteFromArchive' in settings_data else None
         self._cnopts = SFTPHelper()
 
     def connect(self) -> Connection:
@@ -141,9 +151,14 @@ class SFTPService:
         except Exception as exception:
             raise ModuleError('Failed to connect', exception) from exception
 
-    def get_file_list(self, sftp: Connection) -> list:
+    def get_file_list(self, sftp: Connection, type_of_dir: str) -> list:
         try:
-            with sftp.cd(self._directory):
+            if type_of_dir == SFTPService.ARCHIVE:
+                directory = self._archive
+            elif type_of_dir == SFTPService.DIRECTORY:
+                directory = self._directory
+
+            with sftp.cd(directory):
                 file_list = sftp.listdir()
 
             for file_name in file_list:
@@ -172,6 +187,27 @@ class SFTPService:
         except Exception as exception:
             raise ModuleError(f'Failed to move the file "{file_name}" from {self._directory}{file_name} ' \
                 f'to {self._archive}{file_name}', exception) from exception
+
+    def get_list_of_files_to_delete(self, sftp: Connection) -> list:
+        if self._number_of_days_to_delete_from_archive is None:
+            return
+
+        list_of_files_to_delete = []
+        day_to_delete = (datetime.now() - timedelta(days=self._number_of_days_to_delete_from_archive)).strftime("%m/%d/%Y")
+        for file_name in self.get_file_list(sftp, SFTPService.ARCHIVE):
+            path_to_file = f'{self._archive}{file_name}'
+            file_modification_date = datetime.fromtimestamp(sftp.stat(path_to_file).st_mtime).strftime("%m/%d/%Y")
+            if day_to_delete > file_modification_date:
+                list_of_files_to_delete.append(path_to_file)
+
+        return list_of_files_to_delete
+
+    def delete_file(self, sftp: Connection, file_list: list) -> None:
+        try:
+            for file_name in file_list:
+                sftp.remove(file_name)
+        except Exception as exception:
+            raise ModuleError(f'Failed to delete the file "{file_name}"', exception) from exception
 
 
 class SFTPHelper:

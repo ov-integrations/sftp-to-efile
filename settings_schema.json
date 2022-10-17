@@ -19,6 +19,9 @@
             "type": "string",
             "pattern": "^/.*/$"
         },
+        "sftpNumberOfDaysToDeleteFromArchive": {
+            "type": "number"
+        },
         "ovUrl": {
             "type": "string",
             "pattern": "^https://.*|^http://.*"
