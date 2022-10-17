@@ -199,6 +199,7 @@ class SFTPService:
 
     def move_to_archive(self, sftp: Connection, file_name: str) -> None:
         try:
+            self.delete_file(sftp, file_name)
             sftp.rename(f'{self._directory}{file_name}', f'{self._archive}{file_name}')
         except Exception as exception:
             raise ModuleError(f'Failed to move the file "{file_name}" from {self._directory}{file_name} ' \
@@ -213,6 +214,8 @@ class SFTPService:
     def delete_file(self, sftp: Connection, file_name:str) -> None:
         try:
             sftp.remove(f'{self._archive}{file_name}')
+        except FileNotFoundError:
+            pass
         except Exception as exception:
             raise ModuleError(f'Failed to delete the file "{file_name}"', exception) from exception
 
