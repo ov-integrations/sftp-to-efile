@@ -12,13 +12,15 @@ class Module:
         self._sftp_service = SFTPService(settings_data)
         self._trackor_service = TrackorService(ov_url, settings_data)
         self._sftp_file_to_ov_mappings = settings_data['sftpFileToOvMappings']
+        self._directory = settings_data['sftpDirectory']
+        self._archive = settings_data['sftpDirectoryArchive']
         self._archive_file_retention_days = settings_data['sftpArchiveFileRetentionDays'] if 'sftpArchiveFileRetentionDays' in settings_data else None
 
     def start(self):
         self._module_log.add(LogLevel.INFO, 'Starting Module')
 
         with self._sftp_service.connect() as sftp:
-            file_list = self._sftp_service.get_file_list(sftp, SFTPService.DIRECTORY)
+            file_list = self._sftp_service.get_file_list(sftp, self._directory)
             for sftp_file_to_ov_mapping in self._sftp_file_to_ov_mappings:
                 trackor_type = sftp_file_to_ov_mapping['ovTrackorType']
                 file_name_regexp_pattern = sftp_file_to_ov_mapping['sftpFileNameRegexp']
@@ -94,7 +96,7 @@ class Module:
         list_of_files_to_delete = []
         if archive_file_retention_days is not None:
             day_to_delete = (datetime.now() - timedelta(days=archive_file_retention_days)).timestamp()
-            for file_name in self._sftp_service.get_file_list(sftp, SFTPService.ARCHIVE):
+            for file_name in self._sftp_service.get_file_list(sftp, self._archive):
                 file_info = self._sftp_service.get_file_info(sftp, file_name)
                 file_modification_date = file_info.st_mtime
                 if day_to_delete > file_modification_date:
@@ -150,8 +152,6 @@ class TrackorService:
 
 
 class SFTPService:
-    DIRECTORY = 'Directory'
-    ARCHIVE = 'Archive'
 
     def __init__(self, settings_data: dict) -> None:
         self._url = settings_data['sftpUrl']
@@ -167,13 +167,8 @@ class SFTPService:
         except Exception as exception:
             raise ModuleError('Failed to connect', exception) from exception
 
-    def get_file_list(self, sftp: Connection, type_of_dir: str) -> list:
+    def get_file_list(self, sftp: Connection, directory: str) -> list:
         try:
-            if type_of_dir == SFTPService.ARCHIVE:
-                directory = self._archive
-            elif type_of_dir == SFTPService.DIRECTORY:
-                directory = self._directory
-
             with sftp.cd(directory):
                 file_list = sftp.listdir()
 

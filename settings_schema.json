@@ -20,7 +20,8 @@
             "pattern": "^/.*/$"
         },
         "sftpArchiveFileRetentionDays": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
         },
         "ovUrl": {
             "type": "string",
