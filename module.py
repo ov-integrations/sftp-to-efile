@@ -35,7 +35,7 @@ class Module:
                         self._process_file_data(sftp, sftp_file_to_ov_mapping['ovEfileFieldName'], file_name,
                             trackor_data, trackor_type)
 
-            list_of_files_to_delete = self._get_list_of_files_to_delete(sftp)
+            list_of_files_to_delete = self._get_list_of_files_to_delete(sftp, self._archive_file_retention_days)
             if len(list_of_files_to_delete) > 0:
                 self._delete_files_from_archive(sftp, list_of_files_to_delete)
 
@@ -90,10 +90,10 @@ class Module:
             except FileNotFoundError:
                 pass
 
-    def _get_list_of_files_to_delete(self, sftp: Connection) -> list:
+    def _get_list_of_files_to_delete(self, sftp: Connection, archive_file_retention_days: int) -> list:
         list_of_files_to_delete = []
-        if self._archive_file_retention_days is not None:
-            day_to_delete = (datetime.now() - timedelta(days=self._archive_file_retention_days)).timestamp()
+        if archive_file_retention_days is not None:
+            day_to_delete = (datetime.now() - timedelta(days=archive_file_retention_days)).timestamp()
             for file_name in self._sftp_service.get_file_list(sftp, SFTPService.ARCHIVE):
                 file_info = self._sftp_service.get_file_info(sftp, file_name)
                 file_modification_date = file_info.st_mtime
