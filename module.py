@@ -12,6 +12,7 @@ class Module:
         self._sftp_service = SFTPService(settings_data)
         self._trackor_service = TrackorService(ov_url, settings_data)
         self._sftp_file_to_ov_mappings = settings_data['sftpFileToOvMappings']
+        self._archive_file_retention_days = settings_data['sftpArchiveFileRetentionDays'] if 'sftpArchiveFileRetentionDays' in settings_data else None
 
     def start(self):
         self._module_log.add(LogLevel.INFO, 'Starting Module')
@@ -91,11 +92,11 @@ class Module:
 
     def _get_list_of_files_to_delete(self, sftp: Connection) -> list:
         list_of_files_to_delete = []
-        if self._sftp_service.number_of_days_to_delete_from_archive is not None:
-            day_to_delete = (datetime.now() - timedelta(days=self._sftp_service.number_of_days_to_delete_from_archive)).strftime("%m/%d/%Y")
+        if self._archive_file_retention_days is not None:
+            day_to_delete = (datetime.now() - timedelta(days=self._archive_file_retention_days)).timestamp()
             for file_name in self._sftp_service.get_file_list(sftp, SFTPService.ARCHIVE):
                 file_info = self._sftp_service.get_file_info(sftp, file_name)
-                file_modification_date = datetime.fromtimestamp(file_info.st_mtime).strftime("%m/%d/%Y")
+                file_modification_date = file_info.st_mtime
                 if day_to_delete > file_modification_date:
                     list_of_files_to_delete.append(file_name)
 
@@ -158,7 +159,6 @@ class SFTPService:
         self._password = settings_data['sftpPassword']
         self._directory = settings_data['sftpDirectory']
         self._archive = settings_data['sftpDirectoryArchive']
-        self.number_of_days_to_delete_from_archive = settings_data['sftpNumberOfDaysToDeleteFromArchive'] if 'sftpNumberOfDaysToDeleteFromArchive' in settings_data else None
         self._cnopts = SFTPHelper()
 
     def connect(self) -> Connection:

@@ -4,7 +4,7 @@ Module retrieves files from SFTP, filters them by file name using parameters set
 
 
 * sftpFileNameRegexp* - a regexp pattern, which is used to select files from the SFTP
-* sftpNumberOfDaysToDeleteFromArchive - if filled, the files will be deleted from the archive after the specified number of days
+* sftpArchiveFileRetentionDays - if filled, the files will be deleted from the archive after the specified number of days
 * ovTrackorType* - target Trackor Type name
 * ovEfileFieldName* - target EFile field name
 * ovTrackorFilter* - object. Parameters in it determine which Trackors need to be updated, using the received files. Object contains:
