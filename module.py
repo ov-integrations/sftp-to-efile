@@ -37,9 +37,7 @@ class Module:
                         self._process_file_data(sftp, sftp_file_to_ov_mapping['ovEfileFieldName'], file_name,
                             trackor_data, trackor_type)
 
-            list_of_files_to_delete = self._get_list_of_files_to_delete(sftp, self._archive_file_retention_days)
-            if len(list_of_files_to_delete) > 0:
-                self._delete_files_from_archive(sftp, list_of_files_to_delete)
+            self._delete_old_files_from_archive(sftp)
 
         self._module_log.add(LogLevel.INFO, 'Module has been completed')
 
@@ -92,6 +90,12 @@ class Module:
             except FileNotFoundError:
                 pass
 
+    def _delete_old_files_from_archive(self, sftp: Connection) -> None:
+        list_of_files_to_delete = self._get_list_of_files_to_delete(sftp, self._archive_file_retention_days)
+        for file_name in list_of_files_to_delete:
+            self._sftp_service.delete_file(sftp, file_name)
+            self._module_log.add(LogLevel.DEBUG, f'File "{file_name}" has been deleted from the archive')
+
     def _get_list_of_files_to_delete(self, sftp: Connection, archive_file_retention_days: int) -> list:
         list_of_files_to_delete = []
         if archive_file_retention_days is not None:
@@ -106,10 +110,6 @@ class Module:
 
         return list_of_files_to_delete
 
-    def _delete_files_from_archive(self, sftp: Connection, file_list: list) -> None:
-        for file_name in file_list:
-            self._sftp_service.delete_file(sftp, file_name)
-            self._module_log.add(LogLevel.DEBUG, f'File "{file_name}" has been deleted from the archive')
 
 class TrackorService:
     TRACKOR_ID_FIELD_NAME = 'TRACKOR_ID'
