@@ -79,7 +79,7 @@ class Module:
                 for trackor in trackor_data:
                     self._trackor_service.upload_file(trackor_type, trackor[TrackorService.TRACKOR_ID_FIELD_NAME], efile_field_name, file_name)
 
-                self._sftp_service.move_to_archive(sftp, file_name)
+                self._sftp_service.move_file_to_archive(sftp, file_name)
                 self._module_log.add(LogLevel.INFO, f'File "{file_name}" has been uploaded and moved to the archive')
             else:
                 self._module_log.add(LogLevel.WARNING, f'File "{file_name}" has not been downloaded')
@@ -192,9 +192,9 @@ class SFTPService:
         except Exception as exception:
             raise ModuleError(f'Failed to download the file "{file_name}"', exception) from exception
 
-    def move_to_archive(self, sftp: Connection, file_name: str) -> None:
+    def move_file_to_archive(self, sftp: Connection, file_name: str) -> None:
+        self.delete_file(sftp, file_name)
         try:
-            self.delete_file(sftp, file_name)
             sftp.rename(f'{self._directory}{file_name}', f'{self._archive}{file_name}')
         except Exception as exception:
             raise ModuleError(f'Failed to move the file "{file_name}" from {self._directory}{file_name} ' \
