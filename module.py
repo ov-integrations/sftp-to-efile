@@ -93,7 +93,7 @@ class Module:
     def _delete_old_files_from_archive(self, sftp: Connection) -> None:
         list_of_files_to_delete = self._get_list_of_files_to_delete(sftp, self._archive_file_retention_days)
         for file_name in list_of_files_to_delete:
-            self._sftp_service.delete_file(sftp, file_name)
+            self._sftp_service.delete_file(sftp, self._archive, file_name)
             self._module_log.add(LogLevel.DEBUG, f'File "{file_name}" has been deleted from the archive')
 
     def _get_list_of_files_to_delete(self, sftp: Connection, archive_file_retention_days: int) -> list:
@@ -193,7 +193,7 @@ class SFTPService:
             raise ModuleError(f'Failed to download the file "{file_name}"', exception) from exception
 
     def move_file_to_archive(self, sftp: Connection, file_name: str) -> None:
-        self.delete_file(sftp, file_name)
+        self.delete_file(sftp, self._archive, file_name)
         try:
             sftp.rename(f'{self._directory}{file_name}', f'{self._archive}{file_name}')
         except Exception as exception:
@@ -206,9 +206,9 @@ class SFTPService:
         except Exception as exception:
             raise ModuleError(f'Failed to get info for the file "{file_name}"', exception) from exception
 
-    def delete_file(self, sftp: Connection, file_name:str) -> None:
+    def delete_file(self, sftp: Connection, directory: str, file_name:str) -> None:
         try:
-            sftp.remove(f'{self._archive}{file_name}')
+            sftp.remove(f'{directory}{file_name}')
         except FileNotFoundError:
             pass
         except Exception as exception:
