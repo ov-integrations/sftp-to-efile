@@ -79,7 +79,9 @@ class Module:
                 for trackor in trackor_data:
                     self._trackor_service.upload_file(trackor_type, trackor[TrackorService.TRACKOR_ID_FIELD_NAME], efile_field_name, file_name)
 
-                self._sftp_service.move_to_archive(sftp, file_name)
+                if self._sftp_service.is_file_exist(sftp, self._archive, file_name):
+                    self._sftp_service.delete_file(sftp, self._archive, file_name)
+                self._sftp_service.move_file_to_archive(sftp, file_name)
                 self._module_log.add(LogLevel.INFO, f'File "{file_name}" has been uploaded and moved to the archive')
             else:
                 self._module_log.add(LogLevel.WARNING, f'File "{file_name}" has not been downloaded')
@@ -93,7 +95,7 @@ class Module:
     def _delete_old_files_from_archive(self, sftp: Connection) -> None:
         list_of_files_to_delete = self._get_list_of_files_to_delete(sftp, self._archive_file_retention_days)
         for file_name in list_of_files_to_delete:
-            self._sftp_service.delete_file(sftp, file_name)
+            self._sftp_service.delete_file(sftp, self._archive, file_name)
             self._module_log.add(LogLevel.DEBUG, f'File "{file_name}" has been deleted from the archive')
 
     def _get_list_of_files_to_delete(self, sftp: Connection, archive_file_retention_days: int) -> list:
@@ -192,13 +194,12 @@ class SFTPService:
         except Exception as exception:
             raise ModuleError(f'Failed to download the file "{file_name}"', exception) from exception
 
-    def move_to_archive(self, sftp: Connection, file_name: str) -> None:
+    def move_file_to_archive(self, sftp: Connection, file_name: str) -> None:
         try:
-            self.delete_file(sftp, file_name)
             sftp.rename(f'{self._directory}{file_name}', f'{self._archive}{file_name}')
         except Exception as exception:
-            raise ModuleError(f'Failed to move the file "{file_name}" from {self._directory}{file_name} ' \
-                f'to {self._archive}{file_name}', exception) from exception
+            raise ModuleError(f'Failed to move the file "{file_name}" from {self._directory} ' \
+                f'to {self._archive}', exception) from exception
 
     def get_file_info(self, sftp: Connection, file_name: str) -> str:
         try:
@@ -206,13 +207,19 @@ class SFTPService:
         except Exception as exception:
             raise ModuleError(f'Failed to get info for the file "{file_name}"', exception) from exception
 
-    def delete_file(self, sftp: Connection, file_name:str) -> None:
+    def delete_file(self, sftp: Connection, directory: str, file_name: str) -> None:
         try:
-            sftp.remove(f'{self._archive}{file_name}')
+            sftp.remove(f'{directory}{file_name}')
         except FileNotFoundError:
             pass
         except Exception as exception:
-            raise ModuleError(f'Failed to delete the file "{file_name}"', exception) from exception
+            raise ModuleError(f'Failed to delete the file "{file_name}" from {directory}', exception) from exception
+
+    def is_file_exist(self, sftp: Connection, directory: str, file_name: str) -> bool:
+        try:
+            return sftp.exists(f'{directory}{file_name}')
+        except Exception as exception:
+            raise ModuleError(f'Failed is_file_exist for the file "{file_name}" in {directory}', exception) from exception
 
 
 class SFTPHelper:
